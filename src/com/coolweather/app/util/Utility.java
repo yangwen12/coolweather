@@ -1,5 +1,16 @@
 package com.coolweather.app.util;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
 import com.coolweather.app.model.City;
@@ -75,6 +86,46 @@ public class Utility {
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * 解析服务器返回的JSON数据，并将解析出的数据存储到本地
+	 */
+	public static void handleWeatherResponse(Context context, String response){
+		try{
+			JSONObject jsonObject_1 = new JSONObject(response);
+			JSONArray array1 = jsonObject_1.getJSONArray("results");
+			JSONObject jsonObject_2 = array1.getJSONObject(0);
+			JSONArray array2 = jsonObject_2.getJSONArray("weather_data");
+			JSONObject weatherInfo = array2.getJSONObject(0);
+			String date = weatherInfo.getString("date");
+			String weatherDesp = weatherInfo.getString("weather");
+			String cityName = jsonObject_2.getString("currentCity");
+			String pm25 = jsonObject_2.getString("pm25");
+			String wind = weatherInfo.getString("wind");
+			String temperature = weatherInfo.getString("temperature");
+			saveWeatherInfo(context, cityName, date, weatherDesp, temperature,
+					pm25, wind);
+		} catch (JSONException e){
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 将服务器返回的所有天气信息存储到SharedPreferences文件中
+	 */
+	public static void saveWeatherInfo(Context context, String cityName,
+			String date, String weatherDesp, String temperature, String pm25, String wind){
+		SharedPreferences.Editor editor = PreferenceManager
+				.getDefaultSharedPreferences(context).edit();
+		editor.putBoolean("city_selected", true);
+		editor.putString("city_name", cityName);
+		editor.putString("current_date", date);
+		editor.putString("weather_desp", weatherDesp);
+		editor.putString("temperature", temperature);
+		editor.putString("pm25",  pm25);
+		editor.putString("wind", wind);
+		editor.commit();
 	}
 }
 
